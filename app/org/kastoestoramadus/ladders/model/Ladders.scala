@@ -11,8 +11,13 @@ class PlayerState(position: BoardPosition) {
 }
 
 case class Game(players: Seq[PlayerId]) {
+  private[model] def move(player: PlayerId, by: Int) = {
+    val position = playersPositions(player)
+    playersPositions += player -> (position + by)
+  }
 
-  def playersPositions = players.map(p => p -> 1).toMap[PlayerId, BoardPosition]
+
+  var playersPositions = players.map(p => p -> 1).toMap[PlayerId, BoardPosition]
 
 }
 
