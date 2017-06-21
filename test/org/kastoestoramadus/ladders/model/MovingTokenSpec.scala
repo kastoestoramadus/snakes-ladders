@@ -18,34 +18,22 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
     scenario("Move player") {
       Given("the token is on square 1")
       val game = Game.initForPlayers(Seq(firstPlayerName))
+        .gameState.asInstanceOf[GameInProgress]
 
       When("the token is moved 3 spaces")
-      game.move(firstPlayerName, 3)
+      val newState = game.asInstanceOf[GameInProgress]
+        .move(firstPlayerName, 3).state
 
       Then("the token is on square 4")
-      game.playersPositions(firstPlayerName) == 4
-    }
-    scenario("further move") {
-      Given("the token is on square 1")
-      val game = Game.initForPlayers(Seq(firstPlayerName))
-
-      When("the token is moved 3 spaces")
-      game.move(firstPlayerName, 3)
-
-      And("then it is moved 4 spaces")
-      game.move(firstPlayerName, 4)
-
-      Then("the token is on square 8")
-      game.playersPositions(firstPlayerName) == 8
+      newState.playersPositions(firstPlayerName) == 4
     }
   }
   feature("Moves Are Determined By Dice Rolls") {
     info("As a player. I want to move my token based on the roll of a die. So that there is an element of chance in the game")
     scenario("proper roll range") {
       Given("the game is started")
-      val game = Game.initForPlayers(Seq(firstPlayerName))
       When("the player rolls a die")
-      val move = game.rollDie() // not deterministic test
+      val move = Game.rollDie() // not deterministic test
       Then("the result should be between 1-6 inclusive")
       (move <=6) && (move >= 1)
     }
@@ -61,13 +49,13 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
   feature("Player Can Win the Game") {
     info("As a player. I want to be able to win the game. So that I can gloat to everyone around.")
     scenario("wins by exact move") {
-      Given("the token is on square 99")
-      val game = Game.initForPlayers(Seq(firstPlayerName))
-      game.move(firstPlayerName, 98)
+      Given("the token is on square 99") // one case skipped, remained was modified
+      val game = GameInProgress(Map(firstPlayerName -> 99), 0, Seq(firstPlayerName))
+      val newState = game.move(firstPlayerName, 98).state
       When("the token is moved 3 spaces")
-      val won = game.nextMove()
+      val won = newState.nextMove().changed
       Then("the token is on square 100")
-      game.playersPositions(firstPlayerName) == 100
+      newState.playersPositions(firstPlayerName) == 100
       And("the player has won the game")
       won.isLeft == true
     }
