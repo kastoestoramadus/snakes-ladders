@@ -39,4 +39,23 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
       game.playersPositions(firstPlayerName) == 8
     }
   }
+  feature("Moves Are Determined By Dice Rolls") {
+    info("As a player. I want to move my token based on the roll of a die. So that there is an element of chance in the game")
+    scenario("proper roll range") {
+      Given("the game is started")
+      val game = Game.initForPlayers(Seq(firstPlayerName))
+      When("the player rolls a die")
+      val move = game.rollDie() // not deterministic test
+      Then("the result should be between 1-6 inclusive")
+      (move <=6) && (move >= 1)
+    }
+    """
+
+
+
+      |Given the player rolls a 4
+      |When they move their token
+      |Then the token should move 4 spaces
+    """.stripMargin
+  }
 }

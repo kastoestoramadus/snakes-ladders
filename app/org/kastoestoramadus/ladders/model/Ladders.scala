@@ -1,5 +1,7 @@
 package org.kastoestoramadus.ladders.model
 
+import scala.util.Random
+
 // TODO move everything else to same root package
 
 object Board {
@@ -11,6 +13,11 @@ class PlayerState(position: BoardPosition) {
 }
 
 case class Game(players: Seq[PlayerId]) {
+  private[model] val rollDie: () => Int = {
+    val rand = new Random()
+    () => (rand.nextInt()) % 6 + 1
+  }
+
   private[model] def move(player: PlayerId, by: Int) = {
     val position = playersPositions(player)
     playersPositions += player -> (position + by)
