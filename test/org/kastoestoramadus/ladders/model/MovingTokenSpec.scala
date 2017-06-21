@@ -53,9 +53,23 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
       Given("the player rolls") // scenario modified, alternative would be using ScalaCheck
       val game = Game.initForPlayers(Seq(firstPlayerName))
       When("they move their token")
-      val by = game.nextMove().by
+      val by = game.nextMove().right.get.by
       Then("the token should move by rolled number of spaces")
       game.playersPositions(firstPlayerName) == 1 + by
+    }
+  }
+  feature("Player Can Win the Game") {
+    info("As a player. I want to be able to win the game. So that I can gloat to everyone around.")
+    scenario("wins by exact move") {
+      Given("the token is on square 99")
+      val game = Game.initForPlayers(Seq(firstPlayerName))
+      game.move(firstPlayerName, 98)
+      When("the token is moved 3 spaces")
+      val won = game.nextMove()
+      Then("the token is on square 100")
+      game.playersPositions(firstPlayerName) == 100
+      And("the player has won the game")
+      won.isLeft == true
     }
   }
 }
