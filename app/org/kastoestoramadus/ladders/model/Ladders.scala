@@ -8,11 +8,18 @@ object Board {
   val numberOfSquares = 100
 }
 
-class PlayerState(position: BoardPosition) {
-  def advance(by: Int) = ???
-}
+case class Moved(player: PlayerId, by: Int)
 
 case class Game(players: Seq[PlayerId]) {
+  var nextPlayer: PlayerId = players.head
+
+  def nextMove(): Moved = {
+    val r = (nextPlayer, rollDie())
+    (move _).tupled(r)
+    // TODO rotate nextPlayer
+    Moved.tupled(r)
+  }
+
   private[model] val rollDie: () => Int = {
     val rand = new Random()
     () => (rand.nextInt()) % 6 + 1

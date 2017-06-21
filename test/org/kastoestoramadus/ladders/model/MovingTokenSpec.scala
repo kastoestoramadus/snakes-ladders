@@ -49,13 +49,13 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
       Then("the result should be between 1-6 inclusive")
       (move <=6) && (move >= 1)
     }
-    """
-
-
-
-      |Given the player rolls a 4
-      |When they move their token
-      |Then the token should move 4 spaces
-    """.stripMargin
+    scenario("move by roll") {
+      Given("the player rolls") // scenario modified, alternative would be using ScalaCheck
+      val game = Game.initForPlayers(Seq(firstPlayerName))
+      When("they move their token")
+      val by = game.nextMove().by
+      Then("the token should move by rolled number of spaces")
+      game.playersPositions(firstPlayerName) == 1 + by
+    }
   }
 }
