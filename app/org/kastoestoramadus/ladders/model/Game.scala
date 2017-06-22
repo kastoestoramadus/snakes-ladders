@@ -13,25 +13,30 @@ object Board {
 case class Moved(player: PlayerId, by: Int)
 
 case class Game(players: Seq[PlayerId]){
+  import Game.determineWhoIsFirst
 
   private[model] var gameState: GameState = GameInProgress(
-    players.map(p => p -> 1).toMap[PlayerId, BoardPosition], 0, players)
+    players.map(p => p -> 1).toMap[PlayerId, BoardPosition], determineWhoIsFirst(players), players)
 
   def nextMove(): Either[HaveWon, Moved] = {
-    val r = gameState.nextMove()
+    val r = gameState.performNextMove()
     gameState = r.state
     r.changed
   }
   def playersPositions: Map[PlayerId, BoardPosition] = gameState.playersPositions
   def isFinished: Boolean = gameState.isFinished
+  def nextMoves: PlayerId = gameState.nextMoves
 }
 
 object Game {
   def initForPlayers(playersNames: Seq[PlayerId]): Game = new Game(playersNames)
+  private val rand = new Random()
 
-  private[model] val rollDie: () => Int = {
-    val rand = new Random()
-    () => Math.abs(rand.nextInt()) % 6 + 1
+  def rollDie() = Math.abs(rand.nextInt()) % 6 + 1
+
+  private[model] def determineWhoIsFirst(players: Seq[PlayerId]): Int = {
+    val choosen = rand.shuffle(players).head
+    players.indexOf(choosen)
   }
 }
 

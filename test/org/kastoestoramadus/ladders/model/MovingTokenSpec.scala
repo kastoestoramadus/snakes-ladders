@@ -56,7 +56,7 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
         init.move(firstPlayerName, 6).state
       }
       When("the token is moved 3 spaces")
-      val trans = game.nextMove()
+      val trans = game.performNextMove()
       Then("the token is on square 100")
       assert(trans.state.playersPositions(firstPlayerName) == 100)
       And("the player has won the game")

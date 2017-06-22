@@ -5,7 +5,8 @@ case class HaveWon(player: PlayerId)
 
 sealed trait GameState {
   def isFinished: Boolean
-  def nextMove(): Transformed
+  def performNextMove(): Transformed
+  def nextMoves: PlayerId
   def playersPositions: Map[PlayerId, BoardPosition]
 }
 
@@ -16,7 +17,9 @@ case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends 
 
   override def isFinished: Boolean = true
 
-  override def nextMove(): Transformed = Transformed(this, Left(HaveWon(whoWon)))
+  override def performNextMove(): Transformed = Transformed(this, Left(HaveWon(whoWon)))
+
+  override def nextMoves: PlayerId = whoWon
 }
 
 case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPlayerNo: Int, players: Seq[PlayerId]) extends GameState{
@@ -49,11 +52,13 @@ case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPl
     }
   }
 
-  def nextMove(): Transformed = {
+  def performNextMove(): Transformed = {
     val by = rollDie()
     val player = players(nextPlayerNo)
     move(player, by)
   }
 
   override def isFinished: Boolean = false
+
+  override def nextMoves: PlayerId = players(nextPlayerNo)
 }
