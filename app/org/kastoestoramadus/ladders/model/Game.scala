@@ -5,7 +5,9 @@ import scala.util.Random
 // TODO move everything else to same root package
 
 object Board {
+  // could be configurable
   val numberOfSquares = 100
+  val laddersAndSnakes = Map(6 -> 36, 55 -> 70, 92 -> 100, 12 -> 2, 40 -> 24, 67 -> 51)
 }
 
 case class Moved(player: PlayerId, by: Int)
@@ -20,7 +22,7 @@ case class Game(players: Seq[PlayerId]){
     gameState = r.state
     r.changed
   }
-  def playersPositions = gameState.playersPositions
+  def playersPositions: Map[PlayerId, BoardPosition] = gameState.playersPositions
   def isFinished: Boolean = gameState.isFinished
 }
 

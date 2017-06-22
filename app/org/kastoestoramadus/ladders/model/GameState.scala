@@ -21,11 +21,21 @@ case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends 
 
 case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPlayerNo: Int, players: Seq[PlayerId]) extends GameState{
   import Game.rollDie
+  import Board.laddersAndSnakes
 
   private[model] def move(player: PlayerId, by: Int): Transformed = {
-    val r = Moved(player, by)
+    val teleportedTo = {
+      val byMove = playersPositions(player) + by
+      if(laddersAndSnakes.isDefinedAt(byMove))
+        laddersAndSnakes(byMove)
+      else
+        byMove
+    }
+    val moveEffect = Moved(player, teleportedTo - playersPositions(player))
+
     val withNewPosition = playersPositions.updated(player,
-      Math.min(playersPositions(player) + r.by, Board.numberOfSquares))
+      Math.min(teleportedTo, Board.numberOfSquares))
+
     if(playersPositions(player) >= Board.numberOfSquares) {
       Transformed(
         FinishedGame(withNewPosition),
@@ -34,7 +44,7 @@ case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPl
     } else {
       Transformed(
         GameInProgress(withNewPosition, (nextPlayerNo + 1) % players.size, players),
-        Right(r)
+        Right(moveEffect)
       )
     }
   }
