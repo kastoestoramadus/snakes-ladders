@@ -10,7 +10,10 @@ sealed trait GameState {
 }
 
 case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends GameState {
+  assert(playersPositions.exists(_._2 == 100),s"wrong posistions: $playersPositions") // Java assert is better
+
   val whoWon = playersPositions.find(_._2 == 100).get._1
+
   override def isFinished: Boolean = true
 
   override def nextMove(): Transformed = Transformed(this, Left(HaveWon(whoWon)))
@@ -21,8 +24,8 @@ case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPl
 
   private[model] def move(player: PlayerId, by: Int): Transformed = {
     val r = Moved(player, by)
-    val withNewPosition = playersPositions.updated(
-      player, Math.min(playersPositions(player) + r.by, Board.numberOfSquares))
+    val withNewPosition = playersPositions.updated(player,
+      Math.min(playersPositions(player) + r.by, Board.numberOfSquares))
     if(playersPositions(player) >= Board.numberOfSquares) {
       Transformed(
         FinishedGame(withNewPosition),
