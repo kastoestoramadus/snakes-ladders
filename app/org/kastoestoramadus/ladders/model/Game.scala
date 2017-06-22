@@ -12,31 +12,55 @@ object Board {
 
 case class Moved(player: PlayerId, by: Int)
 
-case class Game(players: Seq[PlayerId]){
-  import Game.determineWhoIsFirst
+case class Game(players: Seq[PlayerId]) {
+  require(players.size > 0)
+  var pass = 0
+
+  // FIXME weak type for adding Computer
+  import Game.{COMPUTER_SUFFIX, determineWhoIsFirst}
 
   private[model] var gameState: GameState = GameInProgress(
-    players.map(p => p -> 1).toMap[PlayerId, BoardPosition], determineWhoIsFirst(players), players)
+    players.map(p => p -> 1).toMap[PlayerId, BoardPosition],
+    determineWhoIsFirst(players),
+    players)
 
-  def nextMove(): Either[HaveWon, Moved] = {
+  if (nextMoves.endsWith(COMPUTER_SUFFIX)) performNextMove()
+
+  def performNextMove(): Either[HaveWon, Moved] = {
     val r = gameState.performNextMove()
     gameState = r.state
-    r.changed
+    pass += 1
+    if (nextMoves.endsWith(COMPUTER_SUFFIX) && !isFinished)
+      performNextMove()
+    else
+      r.changed
   }
+
   def playersPositions: Map[PlayerId, BoardPosition] = gameState.playersPositions
+
   def isFinished: Boolean = gameState.isFinished
+
   def nextMoves: PlayerId = gameState.nextMoves
 }
 
 object Game {
-  def initForPlayers(playersNames: Seq[PlayerId]): Game = new Game(playersNames)
+  def initForPlayers(playersNames: Seq[PlayerId],
+                     noOfComputerPlayers: Int = 0): Game = {
+    val players = playersNames ++ (1 to noOfComputerPlayers).map(_.toString + COMPUTER_SUFFIX)
+    require(players.toSet.size == players.size, "Each player name has to be unique")
+    new Game(players)
+  }
+
   private val rand = new Random()
 
   def rollDie() = Math.abs(rand.nextInt()) % 6 + 1
 
   private[model] def determineWhoIsFirst(players: Seq[PlayerId]): Int = {
+    assert(players.size > 0)
     val choosen = rand.shuffle(players).head
     players.indexOf(choosen)
   }
+
+  private[model] val COMPUTER_SUFFIX = "#Computer"
 }
 

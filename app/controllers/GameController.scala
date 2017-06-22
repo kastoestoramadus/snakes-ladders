@@ -28,7 +28,7 @@ class GameController @Inject() extends Controller {
   def makeNextMove() = Action { implicit request =>
     game match {
       case Some(g) => // continue
-        val effect = g.nextMove()
+        val effect = g.performNextMove()
         Ok(s"Effect of move trial: $effect")
       case None => // there is no game started by you
         BadRequest("You have not created any game.")

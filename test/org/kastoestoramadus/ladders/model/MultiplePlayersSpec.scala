@@ -23,8 +23,8 @@ class MultiplePlayersSpec extends FeatureSpec with GivenWhenThen {
       val players = Seq(firstPlayerName, secondPlayerName)
       val game = Game.initForPlayers(players)
       When("Two moves is performed")
-      game.nextMove()
-      game.nextMove()
+      game.performNextMove()
+      game.performNextMove()
       Then("Two players has moved")
       game.playersPositions.values.foreach(pos => assert(pos > 1))
     }
