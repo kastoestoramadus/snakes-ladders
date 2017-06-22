@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 
-import org.kastoestoramadus.ladders.model.{Game, Moved, PlayerId}
+import org.kastoestoramadus.ladders.model.{Board, Game, Moved, PlayerId}
 import play.api.mvc._
 
 /**
@@ -47,5 +47,13 @@ class GameController @Inject() extends Controller {
     Ok("nextMoves:"+ game.map(_.nextMoves))
   }
 
-  // TODO Pretty board state print endpoint
+  def board = Action { implicit request =>
+    import Board._
+    Ok(
+      s"""
+        |Board settings:
+        | numberOfSquares = $numberOfSquares
+        | laddersAndSnakes = $laddersAndSnakes
+      """.stripMargin)
+  }
 }
