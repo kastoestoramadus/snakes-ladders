@@ -8,7 +8,57 @@ import play.api.test.Helpers.{contentAsString, _}
 import scala.concurrent.Future
 
 class GameControllerSpec extends PlaySpec with OneAppPerTest {
-  // free tests from template
+
+  val playerName = "Boe"
+  val startString = s"/reset-game?players=$playerName&computersNo=0"
+
+  // relevant tests to the game
+  "Game Controller" should {
+    "start the game" in {
+      val controller = new GameController
+      val stepR = route(app,
+          makeGetRequest(startString)
+      ).get
+      status(stepR) mustBe OK
+      contentAsString(stepR) must include ("Game")
+      contentAsString(stepR) must include ("created")
+    }
+
+    "make new moves" in {
+      val contr = new GameController
+      route(app,
+          makeGetRequest(startString)
+      ).get
+      val request = makeGetRequest("/make-move")
+      val result = route(app, request).get
+      status(result) mustBe OK
+      contentAsString(result) must include ("Moved")
+      contentAsString(result) must include (playerName)
+    }
+
+    "lead to the end of the game" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val contr = new GameController
+      route(app,
+          makeGetRequest(startString)
+      ).get
+      val batch: Seq[Future[Result]] = for{
+        i <- 1 to 99
+        r <- route(app, makeGetRequest("/make-move"))
+      } yield r
+
+      batch.foreach(f => status(f) mustBe OK)
+      val result = batch.last
+      contentAsString(result) must include ("HaveWon")
+      contentAsString(result) must include (playerName)
+    }
+  }
+
+  def makeGetRequest(endpoint: String) =
+  FakeRequest(GET, endpoint)
+    .withHeaders("Host" -> "localhost")
+
+  // skip check, free tests from template
   "HomeController GET" should {
     "render the index page from a new instance of controller" in {
       val controller = new GameController
@@ -38,51 +88,5 @@ class GameControllerSpec extends PlaySpec with OneAppPerTest {
       contentAsString(home) must include ("Welcome to Play")
     }
   }
-
-  val playerName = "Boe"
-  // relevant tests to the game
-  "Game Controller" should {
-    "start the game" in {
-      val controller = new GameController
-      val stepR = route(app,
-        makeGetRequest(s"/reset-game?players=$playerName")
-      ).get
-      status(stepR) mustBe OK
-      contentAsString(stepR) must include ("Game")
-      contentAsString(stepR) must include ("created")
-    }
-
-    "make new moves" in {
-      val contr = new GameController
-      route(app,
-        makeGetRequest(s"/reset-game?players=$playerName")
-      ).get
-      val request = makeGetRequest("/make-move")
-      val result = route(app, request).get
-      status(result) mustBe OK
-      contentAsString(result) must include ("Moved")
-      contentAsString(result) must include (playerName)
-    }
-
-    "lead to the end of the game" in {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val contr = new GameController
-      route(app,
-        makeGetRequest(s"/reset-game?players=$playerName")
-      ).get
-      val batch: Seq[Future[Result]] = for{
-        i <- 1 to 99
-        r <- route(app, makeGetRequest("/make-move"))
-      } yield r
-
-      batch.foreach(f => status(f) mustBe OK)
-      val result = batch.last
-      contentAsString(result) must include ("HaveWon")
-      contentAsString(result) must include (playerName)
-    }
-  }
-
-  def makeGetRequest(endpoint: String) =
-    FakeRequest(GET, endpoint)
-      .withHeaders("Host" -> "localhost")
+  // end of skip
 }

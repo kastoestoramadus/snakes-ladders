@@ -11,7 +11,7 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
       Given("the game is started")
       val game = Game.initForPlayers(Seq(firstPlayerName))
 
-      When("When the token is placed on the board")
+      When("the token is placed on the board")
       Then("the token is on square 1")
       assert(game.playersPositions(firstPlayerName) == 1)
     }

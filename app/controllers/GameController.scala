@@ -21,9 +21,11 @@ class GameController @Inject() extends Controller {
     Ok(views.html.index())
   }
 
-  def resetTheGame(players: Seq[String]) = Action { implicit request =>
-    game = Some(Game(players))
-    Ok("Game (re)created")
+  def resetTheGame(players: Seq[String], computersNo: Int) = Action { implicit request =>
+    if(players.size + Math.abs(computersNo) > 0) {
+      game = Some(Game.initForPlayers(players, computersNo))
+      Ok("Game (re)created")
+    } else BadRequest("Provide a positive number of players. Ex.: ?players=Joe&noOfComputerPlayers=1")
   }
   def makeNextMove() = Action { implicit request =>
     game match {
@@ -33,6 +35,16 @@ class GameController @Inject() extends Controller {
       case None => // there is no game started by you
         BadRequest("You have not created any game.")
     }
+  }
+
+  def playersPositions = Action { implicit request =>
+    Ok("playersPositions:"+ game.map(_.playersPositions))
+  }
+  def isFinished = Action { implicit request =>
+    Ok("isFinished:"+ game.map(_.isFinished))
+  }
+  def nextMoves = Action { implicit request =>
+    Ok("nextMoves:"+ game.map(_.nextMoves))
   }
 
   // TODO Pretty board state print endpoint
