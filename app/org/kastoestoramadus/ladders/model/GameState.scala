@@ -1,19 +1,23 @@
 package org.kastoestoramadus.ladders.model
 
 case class Transformed(state: GameState, changed: Either[HaveWon, Moved])
+
 case class HaveWon(player: PlayerId)
 
 sealed trait GameState {
   def isFinished: Boolean
+
   def performNextMove(): Transformed
+
   def nextMoves: PlayerId
+
   def playersPositions: Map[PlayerId, BoardPosition]
 }
 
 case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends GameState {
-  assert(playersPositions.exists(_._2 == 100),s"wrong posistions: $playersPositions") // Java assert is better
+  assert(playersPositions.exists(_._2 == 100), s"wrong posistions: $playersPositions") // Java assert is better
 
-  val whoWon = playersPositions.find(_._2 == 100).get._1
+  val whoWon: PlayerId = playersPositions.find(_._2 == 100).get._1
 
   override def isFinished: Boolean = true
 
@@ -22,14 +26,15 @@ case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends 
   override def nextMoves: PlayerId = whoWon
 }
 
-case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPlayerNo: Int, players: Seq[PlayerId]) extends GameState{
-  import Game.rollDie
+case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPlayerNo: Int, players: Seq[PlayerId]) extends GameState {
+
   import Board.laddersAndSnakes
+  import Game.rollDie
 
   private[model] def move(player: PlayerId, by: Int): Transformed = {
     val teleportedTo = {
       val byMove = playersPositions(player) + by
-      if(laddersAndSnakes.isDefinedAt(byMove))
+      if (laddersAndSnakes.isDefinedAt(byMove))
         laddersAndSnakes(byMove)
       else
         byMove
@@ -39,7 +44,7 @@ case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPl
     val withNewPosition = playersPositions.updated(player,
       Math.min(teleportedTo, Board.numberOfSquares))
 
-    if(playersPositions(player) >= Board.numberOfSquares) {
+    if (playersPositions(player) >= Board.numberOfSquares) {
       Transformed(
         FinishedGame(withNewPosition),
         Left(HaveWon(player))

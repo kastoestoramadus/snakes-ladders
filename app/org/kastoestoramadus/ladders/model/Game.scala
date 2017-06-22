@@ -2,8 +2,6 @@ package org.kastoestoramadus.ladders.model
 
 import scala.util.Random
 
-// TODO move everything else to same root package
-
 object Board {
   // could be configurable
   val numberOfSquares = 100
@@ -13,7 +11,7 @@ object Board {
 case class Moved(player: PlayerId, by: Int)
 
 case class Game(players: Seq[PlayerId]) {
-  require(players.size > 0)
+  require(players.nonEmpty)
   var pass = 0
 
   // FIXME weak type for adding Computer
@@ -53,10 +51,10 @@ object Game {
 
   private val rand = new Random()
 
-  def rollDie() = Math.abs(rand.nextInt()) % 6 + 1
+  def rollDie(): Int = Math.abs(rand.nextInt()) % 6 + 1
 
   private[model] def determineWhoIsFirst(players: Seq[PlayerId]): Int = {
-    assert(players.size > 0)
+    assert(players.nonEmpty)
     val choosen = rand.shuffle(players).head
     players.indexOf(choosen)
   }

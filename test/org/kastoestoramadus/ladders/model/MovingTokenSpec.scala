@@ -2,7 +2,7 @@ package org.kastoestoramadus.ladders.model
 
 import org.scalatest.{FeatureSpec, GivenWhenThen}
 
-class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
+class MovingTokenSpec extends FeatureSpec with GivenWhenThen {
   val firstPlayerName = "Joe"
 
   feature("Token Can Move Across the Board") {
@@ -35,7 +35,7 @@ class MovingTokenSpec extends FeatureSpec with GivenWhenThen{
       When("the player rolls a die")
       val move = Game.rollDie() // not deterministic test
       Then("the result should be between 1-6 inclusive")
-      assert((move <=6) && (move >= 1))
+      assert((move <= 6) && (move >= 1))
     }
     scenario("move by roll") {
       Given("the player rolls") // scenario modified, alternative would be using ScalaCheck
