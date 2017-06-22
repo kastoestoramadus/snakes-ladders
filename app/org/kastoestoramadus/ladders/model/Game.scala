@@ -29,7 +29,7 @@ object Game {
 
   private[model] val rollDie: () => Int = {
     val rand = new Random()
-    () => (rand.nextInt()) % 6 + 1
+    () => Math.abs(rand.nextInt()) % 6 + 1
   }
 }
 
