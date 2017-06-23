@@ -1,6 +1,7 @@
 package controllers
 
 import org.kastoestoramadus.ladders.controllers.GameController
+import org.kastoestoramadus.ladders.model.Board
 import org.scalatestplus.play._
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, _}
@@ -43,7 +44,7 @@ class GameControllerSpec extends PlaySpec with OneAppPerTest {
         makeGetRequest(startString)
       ).get
       val batch: Seq[Future[Result]] = for {
-        i <- 1 to 99
+        i <- 1 to (Board.numberOfSquares/2 )// might be not enough to finish but less logs
         r <- route(app, makeGetRequest("/make-move"))
       } yield r
 

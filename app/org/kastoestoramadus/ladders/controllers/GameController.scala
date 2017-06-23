@@ -5,6 +5,7 @@ import javax.inject._
 import org.kastoestoramadus.ladders.model.{Board, Game}
 import play.api.mvc._
 
+// improvement: central module could be at dedicated space outside of controller
 @Singleton
 class GameController @Inject() extends Controller {
 
@@ -18,7 +19,10 @@ class GameController @Inject() extends Controller {
 
   def resetTheGame(players: Seq[String], computersNo: Int) = Action { implicit request =>
     if (players.size + Math.abs(computersNo) > 0) {
-      game = Some(Game.initForPlayers(players, computersNo))
+      game = Some(Game.initForPlayers(
+        players,
+        computersNo,
+        Game.logger))
       Ok("Game (re)created")
     } else BadRequest("Provide a positive number of players. Ex.: ?players=Joe&noOfComputerPlayers=1")
   }

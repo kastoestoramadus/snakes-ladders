@@ -10,11 +10,12 @@ object Board {
 
 case class Moved(player: PlayerId, by: Int)
 
-case class Game(players: Seq[PlayerId]) {
+case class Game(players: Seq[PlayerId],
+                recorder: Transformed => Unit) {
   require(players.nonEmpty)
-  var pass = 0
+  var event = 0
 
-  // FIXME weak type for adding Computer
+  // FIXME weak type for adding Computer or to externalize AI (callbacks?)
   import Game.{COMPUTER_SUFFIX, determineWhoIsFirst}
 
   private[model] var gameState: GameState = GameInProgress(
@@ -27,11 +28,17 @@ case class Game(players: Seq[PlayerId]) {
   def performNextMove(): Either[HaveWon, Moved] = {
     val r = gameState.performNextMove()
     gameState = r.state
-    pass += 1
+    event += 1
+    recorder(r)
     if (nextMoves.endsWith(COMPUTER_SUFFIX) && !isFinished)
       performNextMove()
     else
-      r.changed
+      r.changed     // not returning all states ...
+  }
+
+  def loadSaveGame(saved: GameState) = {
+    event += 1
+    gameState = saved
   }
 
   def playersPositions: Map[PlayerId, BoardPosition] = gameState.playersPositions
@@ -42,14 +49,22 @@ case class Game(players: Seq[PlayerId]) {
 }
 
 object Game {
+  private val rand = new Random() // should I care for entropy ...
+
+  private[model] val COMPUTER_SUFFIX = "#Computer"
+
+  // TODO use logback
+  val logger: Transformed => Unit = event => println(event.toString)
+  private val dummy: Transformed => Unit = _ => ()
+
   def initForPlayers(playersNames: Seq[PlayerId],
-                     noOfComputerPlayers: Int = 0): Game = {
+                     noOfComputerPlayers: Int = 0,
+                     recorder: Transformed => Unit = dummy
+                    ): Game = {
     val players = playersNames ++ (1 to noOfComputerPlayers).map(_.toString + COMPUTER_SUFFIX)
     require(players.toSet.size == players.size, "Each player name has to be unique")
-    new Game(players)
+    new Game(players, recorder)
   }
-
-  private val rand = new Random()
 
   def rollDie(): Int = Math.abs(rand.nextInt()) % 6 + 1
 
@@ -58,7 +73,5 @@ object Game {
     val choosen = rand.shuffle(players).head
     players.indexOf(choosen)
   }
-
-  private[model] val COMPUTER_SUFFIX = "#Computer"
 }
 

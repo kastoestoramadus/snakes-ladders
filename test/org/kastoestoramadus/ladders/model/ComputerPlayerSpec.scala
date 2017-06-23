@@ -12,7 +12,7 @@ class ComputerPlayerSpec extends FeatureSpec with GivenWhenThen {
       val game = Game.initForPlayers(Seq(humanPlayerName),
         noOfComputerPlayers = 1)
       When("it is the computer's turn")
-      if (game.pass == 0) assert(!game.nextMoves.endsWith(Game.COMPUTER_SUFFIX))
+      if (game.event == 0) assert(!game.nextMoves.endsWith(Game.COMPUTER_SUFFIX))
       game.performNextMove()
 
       Then("the computer should roll and move it's token")
