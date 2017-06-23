@@ -3,11 +3,14 @@ package org.kastoestoramadus.ladders
 import com.mongodb.casbah.{MongoCollection, MongoConnection}
 import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
-import org.kastoestoramadus.ladders.model.{BoardPosition, PlayerId}
+import org.kastoestoramadus.ladders.model._
+
+import scala.util.Try
 
 // should not be a static object
 // FIXME lack of tests // not ready for production
-object SaveGameManger extends App{
+// very ugly not ready for production
+object SaveGameManger{
   val DELIM = ","
 
   var mongo: MongoConnection = null
@@ -15,9 +18,9 @@ object SaveGameManger extends App{
   try {
     mongo = MongoConnection()
     coll = mongo("ladder-game")("logs")
-    println(s"last entry at mongo: $getLast")
+    getLast().foreach(last => println(s"Last save game detected: $last"))
   } catch {
-    case _ => println("Something wrong with mongo connection. Tried on default port on localhost.")
+    case e => println("#### !Something wrong with mongo connection. Tried on default port on localhost."+e.getMessage)
   }
   // TODO serialization with play Reads/Writes
   def addEntry(entry: Entry) = {
@@ -29,19 +32,24 @@ object SaveGameManger extends App{
     coll += builder.result
   }
 
-  def getLast(): Entry = {
-    val eAsMap = coll.last.toMap
-
-    Entry(
-      eAsMap.get("players").asInstanceOf[String].split(DELIM).toSeq,
-      eAsMap.get("positions").asInstanceOf[String]
-        .split(DELIM).map(_.split("->").map(_.trim))
-        .map(pair => pair(0) -> pair(1).toInt).toMap,
-      eAsMap.get("next").asInstanceOf[String]
-    )
+  def getLast(): Option[Entry] = {
+    if(coll.size > 0) {
+      val eAsMap = coll.last.toMap
+        Some(Entry(
+          eAsMap.get("players").asInstanceOf[String].split(DELIM).toSeq,
+          eAsMap.get("positions").asInstanceOf[String]
+            .split(DELIM).map(_.split("->").map(_.trim))
+            .map(pair => pair(0) -> pair(1).toInt).toMap,
+          eAsMap.get("next").asInstanceOf[String]
+        ))
+    } else None
   }
 
   def isMongoAvailable: Boolean = mongo != null
 }
 
-case class Entry(players: Seq[PlayerId], positions: Map[PlayerId, BoardPosition], next: PlayerId)
+case class Entry(players: Seq[PlayerId], positions: Map[PlayerId, BoardPosition], next: PlayerId) {
+  def toGameState: GameState = {
+    Try{FinishedGame(positions)}.getOrElse(GameInProgress(positions, players.indexOf(next), players))
+  }
+}

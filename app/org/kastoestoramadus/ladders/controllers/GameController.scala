@@ -2,14 +2,25 @@ package org.kastoestoramadus.ladders.controllers
 
 import javax.inject._
 
-import org.kastoestoramadus.ladders.model.{Board, Game}
+import org.kastoestoramadus.ladders.{Entry, SaveGameManger}
+import org.kastoestoramadus.ladders.model.{Board, Game, GameState, Transformed}
 import play.api.mvc._
 
 // improvement: central module could be at dedicated space outside of controller
 @Singleton
 class GameController @Inject() extends Controller {
-
-  var game: Option[Game] = None // not atomic, TODO
+  var game: Option[Game] = {
+    if(SaveGameManger.isMongoAvailable) {
+      SaveGameManger.getLast().map(_.toGameState)
+        .map{state => // ugly...
+          val r = Game.initForPlayers(
+            state.players, 0, getGameRecorder.get
+          )
+          r.loadSaveGame(state)
+          r
+        }
+    } else None
+  }
   // ? limit threads to 1 | actor ~many parallel games
 
   // In browser health-check
@@ -22,7 +33,7 @@ class GameController @Inject() extends Controller {
       game = Some(Game.initForPlayers(
         players,
         computersNo,
-        Game.logger))
+        getGameRecorder.getOrElse(Game.logger)))
       Ok("Game (re)created")
     } else BadRequest("Provide a positive number of players. Ex.: ?players=Joe&noOfComputerPlayers=1")
   }
@@ -59,4 +70,15 @@ class GameController @Inject() extends Controller {
          | laddersAndSnakes = $laddersAndSnakes
       """.stripMargin)
   }
+
+  def entry(state: GameState): org.kastoestoramadus.ladders.Entry = {
+    Entry(state.players, state.playersPositions, state.nextMoves)
+  }
+
+  def getGameRecorder: Option[Transformed => Unit] =
+    if (SaveGameManger.isMongoAvailable)
+      Some(
+        trans => SaveGameManger.addEntry(entry(trans.state))
+      )
+    else None
 }

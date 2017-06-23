@@ -10,3 +10,5 @@ runs on localhost, port 9000
     GET     /is-finished              check if game has finished. No params.
     GET     /next-moves               check who will perfrom next move. No params.
     GET     /board                    get the board model. No params.
+
+If you provide mongo instance on localhost and default port then the saveGames will work. If any then it will be loaded on the start of the server.

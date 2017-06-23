@@ -30,10 +30,8 @@ case class Game(players: Seq[PlayerId],
     gameState = r.state
     event += 1
     recorder(r)
-    if (nextMoves.endsWith(COMPUTER_SUFFIX) && !isFinished)
-      performNextMove()
-    else
-      r.changed     // not returning all states ...
+    if (nextMoves.endsWith(COMPUTER_SUFFIX) && !isFinished) performNextMove()
+    r.changed     // not returning all states ...
   }
 
   def loadSaveGame(saved: GameState) = {

@@ -15,6 +15,7 @@ class GameControllerSpec extends PlaySpec with OneAppPerTest {
   val startString = s"/reset-game?players=$playerName&computersNo=0"
 
   // relevant tests to the game
+  // DB of save game manager is not cleaned, need to separate the environments
   "Game Controller" should {
     "start the game" in {
       val controller = new GameController

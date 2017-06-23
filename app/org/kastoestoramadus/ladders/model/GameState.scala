@@ -12,6 +12,8 @@ sealed trait GameState {
   def nextMoves: PlayerId
 
   def playersPositions: Map[PlayerId, BoardPosition]
+
+  def players: Seq[PlayerId]
 }
 
 case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends GameState {
@@ -24,6 +26,8 @@ case class FinishedGame(playersPositions: Map[PlayerId, BoardPosition]) extends 
   override def performNextMove(): Transformed = Transformed(this, Left(HaveWon(whoWon)))
 
   override def nextMoves: PlayerId = whoWon
+
+  override def players: Seq[PlayerId] = playersPositions.keys.toSeq
 }
 
 case class GameInProgress(playersPositions: Map[PlayerId, BoardPosition], nextPlayerNo: Int, players: Seq[PlayerId]) extends GameState {
